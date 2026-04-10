@@ -53,13 +53,18 @@ fun AppNavigation() {
                     onNavigateBack = { navController.popBackStack() }
                 )
             }
+
+            // Tab 3: Profile (Additional Screen)
+            composable(BottomNavItem.Profile.route) {
+                ProfileScreen()
+            }
         }
     }
 }
 
 @Composable
 fun AppBottomNavigation(navController: NavHostController) {
-    val items = listOf(BottomNavItem.MealPlans, BottomNavItem.Recipes)
+    val items = listOf(BottomNavItem.MealPlans, BottomNavItem.Recipes, BottomNavItem.Profile)
     val currentRoute = navController.currentBackStackEntryAsState().value?.destination?.route
 
     NavigationBar {
