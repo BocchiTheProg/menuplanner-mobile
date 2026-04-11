@@ -25,6 +25,18 @@ fun RecipeListScreen(
     val recipes = DummyData.recipes // Fetching data
     val snackbarHostState = remember { SnackbarHostState() }
 
+    // Check if returned from a successful creation
+    val savedStateHandle = navController.currentBackStackEntry?.savedStateHandle
+    val recipeCreatedResult = savedStateHandle?.get<Boolean>("recipe_created") ?: false
+
+    LaunchedEffect(recipeCreatedResult) {
+        if (recipeCreatedResult) {
+            snackbarHostState.showSnackbar("Recipe successfully created!")
+            // Reset the state
+            savedStateHandle["recipe_created"] = false
+        }
+    }
+
     Scaffold(
         snackbarHost = { SnackbarHost(snackbarHostState) },
         floatingActionButton = {
@@ -54,17 +66,6 @@ fun RecipeListScreen(
             }
         }
     }
-
-//    LazyColumn(modifier = Modifier.fillMaxSize().padding(16.dp)) {
-//        item {
-//            Text("All Recipes", style = MaterialTheme.typography.headlineMedium)
-//            Spacer(modifier = Modifier.height(16.dp))
-//        }
-//        items(recipes) { recipe ->
-//            RecipeCard(recipe, onRecipeClick)
-//            Spacer(modifier = Modifier.height(8.dp))
-//        }
-//    }
 }
 
 @Composable
