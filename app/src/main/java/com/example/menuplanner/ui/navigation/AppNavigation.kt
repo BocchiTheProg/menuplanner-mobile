@@ -40,8 +40,12 @@ fun AppNavigation() {
             // Tab 2: Recipes (List Screen)
             composable(BottomNavItem.Recipes.route) {
                 RecipeListScreen(
+                    navController = navController,
                     onRecipeClick = { recipeId ->
                         navController.navigate("recipe_detail/$recipeId")
+                    },
+                    onCreateClick = {
+                        navController.navigate("recipe_create")
                     }
                 )
             }
