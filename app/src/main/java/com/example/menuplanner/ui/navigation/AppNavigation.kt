@@ -57,6 +57,10 @@ fun AppNavigation() {
                     onNavigateBack = { navController.popBackStack() }
                 )
             }
+            // Recipe Creation Form
+            composable("recipe_create") {
+                RecipeCreateScreen(navController = navController)
+            }
 
             // Tab 3: Profile (Additional Screen)
             composable(BottomNavItem.Profile.route) {
