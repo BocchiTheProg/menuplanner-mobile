@@ -33,7 +33,10 @@ fun AppNavigation() {
                 val mealPlanId = backStackEntry.arguments?.getString("mealPlanId")
                 MealPlanDetailScreen(
                     mealPlanId = mealPlanId,
-                    onNavigateBack = { navController.popBackStack() }
+                    onNavigateBack = { navController.popBackStack() },
+                    onRecipeClick = { recipeId ->
+                        navController.navigate("recipe_detail/$recipeId")
+                    }
                 )
             }
 
