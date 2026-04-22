@@ -32,11 +32,20 @@ fun AppNavigation() {
             composable("meal_plan_detail/{mealPlanId}") { backStackEntry ->
                 val mealPlanId = backStackEntry.arguments?.getString("mealPlanId")
                 MealPlanDetailScreen(
+                    navController = navController,
                     mealPlanId = mealPlanId,
                     onNavigateBack = { navController.popBackStack() },
                     onRecipeClick = { recipeId ->
                         navController.navigate("recipe_detail/$recipeId")
                     }
+                )
+            }
+            // Update Screen (Meal Plan)
+            composable("meal_plan_update/{mealPlanId}") { backStackEntry ->
+                val mealPlanId = backStackEntry.arguments?.getString("mealPlanId")
+                MealPlanUpdateScreen(
+                    mealPlanId = mealPlanId,
+                    navController = navController
                 )
             }
 

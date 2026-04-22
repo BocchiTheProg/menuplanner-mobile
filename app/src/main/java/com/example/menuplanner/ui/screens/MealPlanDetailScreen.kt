@@ -5,20 +5,23 @@ import androidx.compose.foundation.clickable
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Eco
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.LocalFireDepartment
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavController
 import com.example.menuplanner.data.DummyData
 import com.example.menuplanner.data.model.Recipe
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MealPlanDetailScreen(
+    navController: NavController,
     mealPlanId: String?,
     onNavigateBack: () -> Unit,
     onRecipeClick: (String) -> Unit
@@ -27,13 +30,32 @@ fun MealPlanDetailScreen(
     val mealPlanIndex = DummyData.mealPlans.indexOfFirst { it.id.toString() == mealPlanId }
     val mealPlan = DummyData.mealPlans.getOrNull(mealPlanIndex)
 
+    val snackbarHostState = remember { SnackbarHostState() }
+    val savedStateHandle = navController.currentBackStackEntry?.savedStateHandle
+    val updateSuccess = savedStateHandle?.get<Boolean>("plan_updated") ?: false
+
+    LaunchedEffect(updateSuccess) {
+        if (updateSuccess) {
+            snackbarHostState.showSnackbar("Menu successfully updated!")
+            savedStateHandle["plan_updated"] = false
+        }
+    }
+
     Scaffold(
+        snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
             TopAppBar(
                 title = { Text("Meal Plan Details") },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                    }
+                },
+                actions = {
+                    if (mealPlan != null) {
+                        IconButton(onClick = { navController.navigate("meal_plan_update/${mealPlan.id}") }) {
+                            Icon(Icons.Default.Edit, contentDescription = "Edit Meal Plan")
+                        }
                     }
                 }
             )
