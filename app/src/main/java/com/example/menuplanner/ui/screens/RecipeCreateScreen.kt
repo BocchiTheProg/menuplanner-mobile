@@ -58,7 +58,7 @@ fun RecipeCreateScreen(navController: NavController) {
                 onValueChange = { calories = it },
                 label = { Text("Nutritional value (calories)") },
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                isError = isError && prepTime.toIntOrNull() == null,
+                isError = isError && calories.toIntOrNull() == null,
                 modifier = Modifier.fillMaxWidth()
             )
 
