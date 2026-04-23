@@ -121,9 +121,8 @@ fun RecipeDetailScreen(
                     if (hasUnsavedChanges) {
                         TextButton(
                             onClick = {
-                                if (recipeIndex >= 0) {
-                                    DummyData.recipes[recipeIndex] = recipe.copy(description = descriptionText)
-                                }
+                                val updatedRecipe = recipe.copy(description = descriptionText)
+                                DummyData.updateRecipe(updatedRecipe)
                             }
                         ) {
                             Text("Save changes", fontWeight = FontWeight.Bold)

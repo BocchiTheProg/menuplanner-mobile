@@ -115,12 +115,13 @@ fun RecipeUpdateScreen(
                     val timeInt = prepTime.toIntOrNull()
                     if (title.isNotBlank() && timeInt != null && caloriesInt != null) {
                         // Update object in data source while preserving ID, date, and description
-                        DummyData.recipes[recipeIndex] = recipe.copy(
+                        val updatedRecipe = recipe.copy(
                             title = title,
                             calories = caloriesInt,
                             prepTimeMinutes = timeInt,
                             isVegetarian = isVegetarian
                         )
+                        DummyData.updateRecipe(updatedRecipe)
 
                         // Pass success flag back to previous screen
                         navController.previousBackStackEntry

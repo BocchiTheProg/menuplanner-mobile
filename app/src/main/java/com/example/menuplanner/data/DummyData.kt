@@ -98,4 +98,31 @@ object DummyData {
         )
         recipes.add(newRecipe)
     }
+
+    fun updateRecipe(updatedRecipe: Recipe) {
+        // Update the recipe in the main recipes list
+        val recipeIndex = recipes.indexOfFirst { it.id == updatedRecipe.id }
+        if (recipeIndex != -1) {
+            recipes[recipeIndex] = updatedRecipe
+        }
+
+        // Cascade the update to any Meal Plans that use this recipe
+        for (i in mealPlans.indices) {
+            val plan = mealPlans[i]
+
+            // Check if this meal plan contains the updated recipe
+            val hasRecipe = plan.breakfast.id == updatedRecipe.id ||
+                    plan.lunch.id == updatedRecipe.id ||
+                    plan.dinner.id == updatedRecipe.id
+
+            if (hasRecipe) {
+                // Replace the old recipe references with the new updatedRecipe
+                mealPlans[i] = plan.copy(
+                    breakfast = if (plan.breakfast.id == updatedRecipe.id) updatedRecipe else plan.breakfast,
+                    lunch = if (plan.lunch.id == updatedRecipe.id) updatedRecipe else plan.lunch,
+                    dinner = if (plan.dinner.id == updatedRecipe.id) updatedRecipe else plan.dinner
+                )
+            }
+        }
+    }
 }
