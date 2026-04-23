@@ -101,10 +101,12 @@ fun RecipeDetailScreen(
             if (recipe != null) {
                 // General Info Block
                 Text(text = recipe.title, style = MaterialTheme.typography.headlineLarge)
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(8.dp))
+
                 Text(text = "Nutritional value: ${recipe.calories} Cal", style = MaterialTheme.typography.bodyLarge)
                 Text(text = "Preparation Time: ${recipe.prepTimeMinutes} minutes", style = MaterialTheme.typography.bodyLarge)
                 Text(text = "Dietary: ${if (recipe.isVegetarian) "Vegetarian" else "Standard"}", style = MaterialTheme.typography.bodyLarge)
+                Text(text = "Date Added to Recipe list: ${recipe.dateAdded}", style = MaterialTheme.typography.bodySmall)
                 Spacer(modifier = Modifier.height(24.dp))
 
                 HorizontalDivider()
