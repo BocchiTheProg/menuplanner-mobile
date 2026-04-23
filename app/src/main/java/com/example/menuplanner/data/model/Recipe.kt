@@ -7,6 +7,7 @@ import java.util.UUID
 data class Recipe (
     val id: UUID,
     val title: String,
+    val description: String,
     val calories: Int,
     val prepTimeMinutes: Int,
     val isVegetarian: Boolean,
