@@ -64,8 +64,7 @@ fun MealPlanDetailScreen(
         Column(modifier = Modifier.padding(padding).padding(16.dp)) {
             if (mealPlan != null) {
                 Text(text = "Meal plan for ${mealPlan.dayOfWeek}", style = MaterialTheme.typography.headlineLarge)
-                Spacer(modifier = Modifier.height(16.dp))
-                Text(text = "ID: ${mealPlan.id}", style = MaterialTheme.typography.bodyMedium)
+                Spacer(modifier = Modifier.height(8.dp))
 
                 val recipes = listOf(mealPlan.breakfast, mealPlan.lunch, mealPlan.dinner)
                 val totalCalories = recipes.sumOf { it.calories }
