@@ -4,17 +4,23 @@ import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavController
 import com.example.menuplanner.data.DummyData
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun RecipeDetailScreen(recipeId: String?, onNavigateBack: () -> Unit) {
+fun RecipeDetailScreen(
+    navController: NavController,
+    recipeId: String?,
+    onNavigateBack: () -> Unit)
+{
     // Find the specific object from the model based on ID
     val recipeIndex = DummyData.recipes.indexOfFirst { it.id.toString() == recipeId }
     val recipe = DummyData.recipes.getOrNull(recipeIndex)
@@ -23,6 +29,18 @@ fun RecipeDetailScreen(recipeId: String?, onNavigateBack: () -> Unit) {
     var descriptionText by remember(recipe) { mutableStateOf(recipe?.description ?: "") }
     val hasUnsavedChanges = recipe != null && descriptionText != recipe.description
     var showUnsavedDialog by remember { mutableStateOf(false) }
+
+    // State for general update notification
+    val snackbarHostState = remember { SnackbarHostState() }
+    val savedStateHandle = navController.currentBackStackEntry?.savedStateHandle
+    val generalUpdateSuccess = savedStateHandle?.get<Boolean>("recipe_updated") ?: false
+
+    LaunchedEffect(generalUpdateSuccess) {
+        if (generalUpdateSuccess) {
+            snackbarHostState.showSnackbar("Recipe successfully updated!")
+            savedStateHandle["recipe_updated"] = false
+        }
+    }
 
     // Intercept back navigation
     val handleBackNavigation = {
@@ -60,12 +78,20 @@ fun RecipeDetailScreen(recipeId: String?, onNavigateBack: () -> Unit) {
     }
 
     Scaffold(
+        snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
             TopAppBar(
                 title = { Text("Recipe Details") },
                 navigationIcon = {
                     IconButton(onClick = handleBackNavigation) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                    }
+                },
+                actions = {
+                    if (recipe != null) {
+                        IconButton(onClick = { navController.navigate("recipe_update/${recipe.id}") }) {
+                            Icon(Icons.Default.Edit, contentDescription = "Edit Recipe")
+                        }
                     }
                 }
             )

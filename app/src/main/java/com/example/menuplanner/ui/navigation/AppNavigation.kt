@@ -65,8 +65,17 @@ fun AppNavigation() {
             composable("recipe_detail/{recipeId}") { backStackEntry ->
                 val recipeId = backStackEntry.arguments?.getString("recipeId")
                 RecipeDetailScreen(
+                    navController = navController,
                     recipeId = recipeId,
                     onNavigateBack = { navController.popBackStack() }
+                )
+            }
+            // Update Screen (Recipe General Info)
+            composable("recipe_update/{recipeId}") { backStackEntry ->
+                val recipeId = backStackEntry.arguments?.getString("recipeId")
+                RecipeUpdateScreen(
+                    recipeId = recipeId,
+                    navController = navController
                 )
             }
             // Recipe Creation Form
