@@ -7,6 +7,8 @@ import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.*
 import com.example.menuplanner.ui.screens.*
+import com.example.menuplanner.ui.screens.mealPlans.*
+import com.example.menuplanner.ui.screens.recipes.*
 
 @Composable
 fun AppNavigation() {

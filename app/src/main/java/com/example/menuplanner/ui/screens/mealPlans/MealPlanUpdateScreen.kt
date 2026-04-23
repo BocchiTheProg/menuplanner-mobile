@@ -1,4 +1,4 @@
-package com.example.menuplanner.ui.screens
+package com.example.menuplanner.ui.screens.mealPlans
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons

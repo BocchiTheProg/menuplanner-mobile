@@ -1,4 +1,4 @@
-package com.example.menuplanner.ui.screens
+package com.example.menuplanner.ui.screens.recipes
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.KeyboardOptions
@@ -15,25 +15,12 @@ import com.example.menuplanner.data.DummyData
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun RecipeUpdateScreen(
-    recipeId: String?,
-    navController: NavController
-) {
-    val recipeIndex = DummyData.recipes.indexOfFirst { it.id.toString() == recipeId }
-    val recipe = DummyData.recipes.getOrNull(recipeIndex)
-
-    if (recipe == null) {
-        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-            Text("Recipe not found.")
-        }
-        return
-    }
-
-    // State variables populated with current recipe data
-    var title by remember { mutableStateOf(recipe.title) }
-    var calories by remember { mutableStateOf(recipe.calories.toString()) }
-    var prepTime by remember { mutableStateOf(recipe.prepTimeMinutes.toString()) }
-    var isVegetarian by remember { mutableStateOf(recipe.isVegetarian) }
+fun RecipeCreateScreen(navController: NavController) {
+    // State variables for form inputs
+    var title by remember { mutableStateOf("") }
+    var calories by remember {mutableStateOf("") }
+    var prepTime by remember { mutableStateOf("") }
+    var isVegetarian by remember { mutableStateOf(false) }
 
     // Validation state
     var isError by remember { mutableStateOf(false) }
@@ -41,7 +28,7 @@ fun RecipeUpdateScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Update Recipe Info") },
+                title = { Text("Create New Recipe") },
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
@@ -114,18 +101,16 @@ fun RecipeUpdateScreen(
                     val caloriesInt = calories.toIntOrNull()
                     val timeInt = prepTime.toIntOrNull()
                     if (title.isNotBlank() && timeInt != null && caloriesInt != null) {
-                        // Update object in data source while preserving ID, date, and description
-                        DummyData.recipes[recipeIndex] = recipe.copy(
-                            title = title,
-                            calories = caloriesInt,
-                            prepTimeMinutes = timeInt,
-                            isVegetarian = isVegetarian
-                        )
+                        // Create object and add to data source
+                        DummyData.addRecipe(title,
+                            caloriesInt,
+                            timeInt,
+                            isVegetarian)
 
                         // Pass success flag back to previous screen
                         navController.previousBackStackEntry
                             ?.savedStateHandle
-                            ?.set("recipe_updated", true)
+                            ?.set("recipe_created", true)
 
                         // Navigate back
                         navController.popBackStack()
@@ -135,7 +120,7 @@ fun RecipeUpdateScreen(
                 },
                 modifier = Modifier.fillMaxWidth().height(50.dp)
             ) {
-                Text("Save Changes")
+                Text("Create Recipe")
             }
         }
     }
