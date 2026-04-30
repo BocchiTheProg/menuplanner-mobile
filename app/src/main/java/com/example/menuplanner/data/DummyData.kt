@@ -127,6 +127,10 @@ object DummyData {
             false),
     )
 
+    // Copy initial values of lists (for reset function)
+    val initialRecipes = recipes.toList()
+    val initialMealPlans = mealPlans.toList()
+
     // Helper function to add a new recipe
     fun addRecipe(title: String, calories: Int, prepTime: Int, isVegetarian: Boolean) {
         val newRecipe = Recipe(
@@ -166,5 +170,13 @@ object DummyData {
                 )
             }
         }
+    }
+
+    // Reset recipes and mealPlans lists to initial values
+    fun resetToDefault() {
+        recipes.clear()
+        recipes.addAll(initialRecipes)
+        mealPlans.clear()
+        mealPlans.addAll(initialMealPlans)
     }
 }
