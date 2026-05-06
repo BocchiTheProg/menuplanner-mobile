@@ -9,6 +9,7 @@ import java.util.UUID
 @Entity(tableName = "recipes")
 data class RecipeEntity(
     @PrimaryKey val id: UUID,
+
     val title: String,
     val description: String,
     val calories: Int,
@@ -21,6 +22,7 @@ data class RecipeEntity(
 @Entity(tableName = "meal_plans")
 data class MealPlanEntity(
     @PrimaryKey val id: UUID,
+
     val dayOfWeek: String,
     val breakfastId: UUID,
     val lunchId: UUID,
