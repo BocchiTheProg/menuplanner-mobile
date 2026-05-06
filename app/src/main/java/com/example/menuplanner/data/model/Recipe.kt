@@ -2,6 +2,7 @@ package com.example.menuplanner.data.model
 
 import java.util.Date
 import java.util.UUID
+import com.example.menuplanner.data.SyncStatus
 
 // Represents a specific dish(recipe) available in the application that can be used for meal plan.
 data class Recipe (
@@ -11,5 +12,6 @@ data class Recipe (
     val calories: Int,
     val prepTimeMinutes: Int,
     val isVegetarian: Boolean,
-    val dateAdded: Date
+    val dateAdded: Date,
+    val syncStatus: SyncStatus = SyncStatus.PENDING
 )
