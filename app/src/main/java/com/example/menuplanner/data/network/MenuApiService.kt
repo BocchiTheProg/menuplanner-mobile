@@ -1,8 +1,8 @@
 package com.example.menuplanner.data.network
 
 import java.util.UUID
-import com.example.menuplanner.data.model.MealPlan
-import com.example.menuplanner.data.model.Recipe
+import com.example.menuplanner.domain.model.MealPlan
+import com.example.menuplanner.domain.model.Recipe
 
 interface MenuApiService {
     suspend fun syncRecipe(recipe: Recipe): Result<Recipe>
