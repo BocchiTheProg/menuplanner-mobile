@@ -1,4 +1,4 @@
-package com.example.menuplanner.data
+package com.example.menuplanner.data.local
 
 import androidx.room.Dao
 import androidx.room.Delete
@@ -14,7 +14,7 @@ interface MenuDao {
     @Query("SELECT * FROM recipes")
     fun getAllRecipes(): Flow<List<RecipeEntity>>
 
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    @Insert(onConflict = OnConflictStrategy.Companion.REPLACE)
     suspend fun insertRecipe(recipe: RecipeEntity)
 
     @Delete
@@ -25,6 +25,6 @@ interface MenuDao {
     @Query("SELECT * FROM meal_plans")
     fun getAllMealPlans(): Flow<List<MealPlanWithRecipes>>
 
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    @Insert(onConflict = OnConflictStrategy.Companion.REPLACE)
     suspend fun insertMealPlan(mealPlan: MealPlanEntity)
 }

@@ -1,7 +1,7 @@
-package com.example.menuplanner.data.model
+package com.example.menuplanner.domain.model
 
 import java.util.UUID
-import com.example.menuplanner.data.SyncStatus
+import com.example.menuplanner.domain.model.SyncStatus
 
 // Represents a scheduled meals for a specific day.
 data class MealPlan(

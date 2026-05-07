@@ -1,4 +1,4 @@
-package com.example.menuplanner.data
+package com.example.menuplanner.data.local
 
 import androidx.room.Embedded
 import androidx.room.Entity
