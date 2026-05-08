@@ -7,9 +7,9 @@ import com.example.menuplanner.domain.model.SyncStatus
 data class MealPlan(
     val id: UUID,
     val dayOfWeek: String,
-    val breakfast: Recipe,
-    val lunch: Recipe,
-    val dinner: Recipe,
+    val breakfast: Recipe? = null,
+    val lunch: Recipe? = null,
+    val dinner: Recipe? = null,
     val isCooked: Boolean,
     val syncStatus: SyncStatus = SyncStatus.PENDING
 )

@@ -13,5 +13,6 @@ data class Recipe (
     val prepTimeMinutes: Int,
     val isVegetarian: Boolean,
     val dateAdded: Date,
+    val lastUpdated: Long = System.currentTimeMillis(),
     val syncStatus: SyncStatus = SyncStatus.PENDING
 )

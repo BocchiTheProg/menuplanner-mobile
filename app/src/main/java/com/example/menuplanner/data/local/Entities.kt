@@ -16,6 +16,7 @@ data class RecipeEntity(
     val prepTimeMinutes: Int,
     val isVegetarian: Boolean,
     val dateAdded: Long,
+    val lastUpdated: Long,
     val syncStatus: String
 )
 
@@ -24,9 +25,9 @@ data class MealPlanEntity(
     @PrimaryKey val id: UUID,
 
     val dayOfWeek: String,
-    val breakfastId: UUID,
-    val lunchId: UUID,
-    val dinnerId: UUID,
+    val breakfastId: UUID?,
+    val lunchId: UUID?,
+    val dinnerId: UUID?,
     val isCooked: Boolean,
     val syncStatus: String
 )
@@ -34,7 +35,7 @@ data class MealPlanEntity(
 // Relational Data Class for Room
 data class MealPlanWithRecipes(
     @Embedded val mealPlan: MealPlanEntity,
-    @Relation(parentColumn = "breakfastId", entityColumn = "id") val breakfast: RecipeEntity,
-    @Relation(parentColumn = "lunchId", entityColumn = "id") val lunch: RecipeEntity,
-    @Relation(parentColumn = "dinnerId", entityColumn = "id") val dinner: RecipeEntity
+    @Relation(parentColumn = "breakfastId", entityColumn = "id") val breakfast: RecipeEntity?,
+    @Relation(parentColumn = "lunchId", entityColumn = "id") val lunch: RecipeEntity?,
+    @Relation(parentColumn = "dinnerId", entityColumn = "id") val dinner: RecipeEntity?
 )

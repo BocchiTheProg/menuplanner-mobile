@@ -15,6 +15,7 @@ fun RecipeEntity.toDomainModel(): Recipe {
         isVegetarian = this.isVegetarian,
         dateAdded = Date(this.dateAdded),
         description = this.description,
+        lastUpdated = this.lastUpdated,
         syncStatus = SyncStatus.valueOf(this.syncStatus)
     )
 }
@@ -28,6 +29,7 @@ fun Recipe.toEntity(): RecipeEntity {
         isVegetarian = this.isVegetarian,
         dateAdded = this.dateAdded.time,
         description = this.description,
+        lastUpdated = System.currentTimeMillis(),
         syncStatus = this.syncStatus.name
     )
 }
@@ -37,9 +39,9 @@ fun MealPlanWithRecipes.toDomainModel(): MealPlan {
     return MealPlan(
         id = this.mealPlan.id,
         dayOfWeek = this.mealPlan.dayOfWeek,
-        breakfast = this.breakfast.toDomainModel(),
-        lunch = this.lunch.toDomainModel(),
-        dinner = this.dinner.toDomainModel(),
+        breakfast = this.breakfast?.toDomainModel(),
+        lunch = this.lunch?.toDomainModel(),
+        dinner = this.dinner?.toDomainModel(),
         isCooked = this.mealPlan.isCooked,
         syncStatus = SyncStatus.valueOf(this.mealPlan.syncStatus)
     )
@@ -49,9 +51,9 @@ fun MealPlan.toEntity(): MealPlanEntity {
     return MealPlanEntity(
         id = this.id,
         dayOfWeek = this.dayOfWeek,
-        breakfastId = this.breakfast.id,
-        lunchId = this.lunch.id,
-        dinnerId = this.dinner.id,
+        breakfastId = this.breakfast?.id,
+        lunchId = this.lunch?.id,
+        dinnerId = this.dinner?.id,
         isCooked = this.isCooked,
         syncStatus = this.syncStatus.name
     )
