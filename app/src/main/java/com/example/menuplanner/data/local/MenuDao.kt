@@ -7,12 +7,16 @@ import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Transaction
 import kotlinx.coroutines.flow.Flow
+import java.util.UUID
 
 @Dao
 interface MenuDao {
     // Recipes
     @Query("SELECT * FROM recipes")
     fun getAllRecipes(): Flow<List<RecipeEntity>>
+
+    @Query("SELECT * FROM recipes WHERE id = :id")
+    suspend fun getRecipeById(id: UUID): RecipeEntity?
 
     @Insert(onConflict = OnConflictStrategy.Companion.REPLACE)
     suspend fun insertRecipe(recipe: RecipeEntity)
@@ -24,6 +28,10 @@ interface MenuDao {
     @Transaction
     @Query("SELECT * FROM meal_plans")
     fun getAllMealPlans(): Flow<List<MealPlanWithRecipes>>
+
+    @Transaction
+    @Query("SELECT * FROM meal_plans WHERE id = :id")
+    suspend fun getMealPlanById(id: UUID): MealPlanWithRecipes?
 
     @Insert(onConflict = OnConflictStrategy.Companion.REPLACE)
     suspend fun insertMealPlan(mealPlan: MealPlanEntity)
