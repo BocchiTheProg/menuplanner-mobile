@@ -2,7 +2,6 @@ package com.example.menuplanner.domain.model
 
 import java.util.Date
 import java.util.UUID
-import com.example.menuplanner.domain.model.SyncStatus
 
 // Represents a specific dish(recipe) available in the application that can be used for meal plan.
 data class Recipe (
