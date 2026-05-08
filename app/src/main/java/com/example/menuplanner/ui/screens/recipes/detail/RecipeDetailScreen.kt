@@ -1,4 +1,4 @@
-package com.example.menuplanner.ui.screens.recipes
+package com.example.menuplanner.ui.screens.recipes.detail
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.*
@@ -11,23 +11,35 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation.NavController
-import com.example.menuplanner.data.DummyData
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RecipeDetailScreen(
     navController: NavController,
     recipeId: String?,
-    onNavigateBack: () -> Unit)
-{
-    // Find the specific object from the model based on ID
-    val recipeIndex = DummyData.recipes.indexOfFirst { it.id.toString() == recipeId }
-    val recipe = DummyData.recipes.getOrNull(recipeIndex)
+    viewModel: RecipeDetailViewModel = hiltViewModel(),
+    onNavigateBack: () -> Unit
+) {
 
-    // State for description editing
-    var descriptionText by remember(recipe) { mutableStateOf(recipe?.description ?: "") }
-    val hasUnsavedChanges = recipe != null && descriptionText != recipe.description
+    // Trigger load on entry
+    LaunchedEffect(recipeId) {
+        viewModel.loadRecipe(recipeId)
+    }
+    val recipe by viewModel.recipe.collectAsState()
+
+    // State for local editing (initialized when recipe loads)
+    var descriptionText by remember { mutableStateOf("") }
+
+    // Sync local state when the recipe is loaded from DB
+    LaunchedEffect(recipe) {
+        recipe?.let { descriptionText = it.description }
+    }
+
+    val currentRecipe = recipe
+
+    val hasUnsavedChanges = recipe != null && descriptionText != recipe?.description
     var showUnsavedDialog by remember { mutableStateOf(false) }
 
     // State for general update notification
@@ -88,8 +100,8 @@ fun RecipeDetailScreen(
                     }
                 },
                 actions = {
-                    if (recipe != null) {
-                        IconButton(onClick = { navController.navigate("recipe_update/${recipe.id}") }) {
+                    if (currentRecipe != null) {
+                        IconButton(onClick = { navController.navigate("recipe_update/${currentRecipe.id}") }) {
                             Icon(Icons.Default.Edit, contentDescription = "Edit Recipe")
                         }
                     }
@@ -98,15 +110,15 @@ fun RecipeDetailScreen(
         }
     ) { padding ->
         Column(modifier = Modifier.padding(padding).padding(16.dp).fillMaxSize()) {
-            if (recipe != null) {
+            if (currentRecipe != null) {
                 // General Info Block
-                Text(text = recipe.title, style = MaterialTheme.typography.headlineLarge)
+                Text(text = currentRecipe.title, style = MaterialTheme.typography.headlineLarge)
                 Spacer(modifier = Modifier.height(8.dp))
 
-                Text(text = "Nutritional value: ${recipe.calories} Cal", style = MaterialTheme.typography.bodyLarge)
-                Text(text = "Preparation Time: ${recipe.prepTimeMinutes} minutes", style = MaterialTheme.typography.bodyLarge)
-                Text(text = "Dietary: ${if (recipe.isVegetarian) "Vegetarian" else "Standard"}", style = MaterialTheme.typography.bodyLarge)
-                Text(text = "Date Added to Recipe list: ${recipe.dateAdded}", style = MaterialTheme.typography.bodySmall)
+                Text(text = "Nutritional value: ${currentRecipe.calories} Cal", style = MaterialTheme.typography.bodyLarge)
+                Text(text = "Preparation Time: ${currentRecipe.prepTimeMinutes} minutes", style = MaterialTheme.typography.bodyLarge)
+                Text(text = "Dietary: ${if (currentRecipe.isVegetarian) "Vegetarian" else "Standard"}", style = MaterialTheme.typography.bodyLarge)
+                Text(text = "Date Added to Recipe list: ${currentRecipe.dateAdded}", style = MaterialTheme.typography.bodySmall)
                 Spacer(modifier = Modifier.height(24.dp))
 
                 HorizontalDivider()
@@ -123,8 +135,7 @@ fun RecipeDetailScreen(
                     if (hasUnsavedChanges) {
                         TextButton(
                             onClick = {
-                                val updatedRecipe = recipe.copy(description = descriptionText)
-                                DummyData.updateRecipe(updatedRecipe)
+                                viewModel.updateDescription(description = descriptionText)
                             }
                         ) {
                             Text("Save changes", fontWeight = FontWeight.Bold)
