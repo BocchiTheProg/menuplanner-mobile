@@ -1,4 +1,4 @@
-package com.example.menuplanner.ui.screens.mealPlans
+package com.example.menuplanner.ui.screens.mealPlans.detail
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.clickable
@@ -11,26 +11,32 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation.NavController
-import com.example.menuplanner.data.DummyData
-import com.example.menuplanner.data.model.Recipe
+import com.example.menuplanner.domain.model.Recipe
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MealPlanDetailScreen(
     navController: NavController,
     mealPlanId: String?,
+    viewModel: MealPlanDetailViewModel = hiltViewModel(),
     onNavigateBack: () -> Unit,
     onRecipeClick: (String) -> Unit
 ) {
-    // Find the specific object from the model based on ID
-    val mealPlanIndex = DummyData.mealPlans.indexOfFirst { it.id.toString() == mealPlanId }
-    val mealPlan = DummyData.mealPlans.getOrNull(mealPlanIndex)
+    LaunchedEffect(mealPlanId) {
+        viewModel.loadMealPlan(mealPlanId)
+    }
 
+    val mealPlan by viewModel.mealPlan.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
+
+    val currentPlan = mealPlan
+
     val savedStateHandle = navController.currentBackStackEntry?.savedStateHandle
     val updateSuccess = savedStateHandle?.get<Boolean>("plan_updated") ?: false
 
@@ -52,8 +58,8 @@ fun MealPlanDetailScreen(
                     }
                 },
                 actions = {
-                    if (mealPlan != null) {
-                        IconButton(onClick = { navController.navigate("meal_plan_update/${mealPlan.id}") }) {
+                    currentPlan?.let {
+                        IconButton(onClick = { navController.navigate("meal_plan_update/${it.id}") }) {
                             Icon(Icons.Default.Edit, contentDescription = "Edit Meal Plan")
                         }
                     }
@@ -62,20 +68,20 @@ fun MealPlanDetailScreen(
         }
     ) { padding ->
         Column(modifier = Modifier.padding(padding).padding(16.dp)) {
-            if (mealPlan != null) {
-                Text(text = "Meal plan for ${mealPlan.dayOfWeek}", style = MaterialTheme.typography.headlineLarge)
+            if (currentPlan != null) {
+                Text(text = "Meal plan for ${currentPlan.dayOfWeek}", style = MaterialTheme.typography.headlineLarge)
                 Spacer(modifier = Modifier.height(8.dp))
 
-                val recipes = listOf(mealPlan.breakfast, mealPlan.lunch, mealPlan.dinner)
+                val recipes = listOfNotNull(currentPlan.breakfast, currentPlan.lunch, currentPlan.dinner)
                 val totalCalories = recipes.sumOf { it.calories }
-                val allVegetarian = recipes.all { it.isVegetarian }
+                val allVegetarian = if (recipes.isEmpty()) false else recipes.all { it.isVegetarian }
 
                 Spacer(modifier = Modifier.height(14.dp))
                 Text("Included recipes", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
                 Spacer(modifier = Modifier.height(8.dp))
-                RecipeLinkRow(label = "Breakfast", recipe = mealPlan.breakfast, onRecipeClick = onRecipeClick)
-                RecipeLinkRow(label = "Lunch", recipe = mealPlan.lunch, onRecipeClick = onRecipeClick)
-                RecipeLinkRow(label = "Dinner", recipe = mealPlan.dinner, onRecipeClick = onRecipeClick)
+                RecipeLinkRow(label = "Breakfast", recipe = currentPlan.breakfast, onRecipeClick = onRecipeClick)
+                RecipeLinkRow(label = "Lunch", recipe = currentPlan.lunch, onRecipeClick = onRecipeClick)
+                RecipeLinkRow(label = "Dinner", recipe = currentPlan.dinner, onRecipeClick = onRecipeClick)
 
                 Spacer(modifier = Modifier.height(16.dp))
                 Row(verticalAlignment = Alignment.CenterVertically) {
@@ -95,17 +101,13 @@ fun MealPlanDetailScreen(
                 }
 
                 Spacer(modifier = Modifier.height(20.dp))
-                Button(
-                    onClick = {
-                        if (mealPlanIndex >= 0) {
-                            DummyData.mealPlans[mealPlanIndex] = mealPlan.copy(isCooked = !mealPlan.isCooked)
-                        }
-                    }
-                ) {
-                    Text(if (mealPlan.isCooked) "Mark as Not Cooked" else "Mark as Cooked")
+                Button(onClick = { viewModel.toggleCookedStatus() }) {
+                    Text(if (currentPlan.isCooked) "Mark as Not Cooked" else "Mark as Cooked")
                 }
             } else {
-                Text("Meal Plan not found.")
+                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    CircularProgressIndicator()
+                }
             }
         }
     }
@@ -114,17 +116,21 @@ fun MealPlanDetailScreen(
 @Composable
 private fun RecipeLinkRow(
     label: String,
-    recipe: Recipe,
+    recipe: Recipe?,
     onRecipeClick: (String) -> Unit
 ) {
     Row(verticalAlignment = Alignment.CenterVertically) {
-        Text("$label: ", style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Medium)
-        Text(
-            text = recipe.title,
-            style = MaterialTheme.typography.bodyLarge.copy(textDecoration = TextDecoration.Underline),
-            color = MaterialTheme.colorScheme.primary,
-            modifier = Modifier.clickable { onRecipeClick(recipe.id.toString()) }
-        )
+        Text("$label: ", fontWeight = FontWeight.Medium)
+        if (recipe != null) {
+            Text(
+                text = recipe.title,
+                style = MaterialTheme.typography.bodyLarge.copy(textDecoration = TextDecoration.Underline),
+                color = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.clickable { onRecipeClick(recipe.id.toString()) }
+            )
+        } else {
+            Text("Not set", style = MaterialTheme.typography.bodyLarge, color = Color.Gray)
+        }
     }
     Spacer(modifier = Modifier.height(6.dp))
 }

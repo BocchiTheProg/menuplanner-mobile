@@ -7,8 +7,13 @@ import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.*
 import com.example.menuplanner.ui.screens.*
-import com.example.menuplanner.ui.screens.mealPlans.*
-import com.example.menuplanner.ui.screens.recipes.*
+import com.example.menuplanner.ui.screens.mealPlans.detail.MealPlanDetailScreen
+import com.example.menuplanner.ui.screens.mealPlans.list.MealPlanListScreen
+import com.example.menuplanner.ui.screens.mealPlans.update.MealPlanUpdateScreen
+import com.example.menuplanner.ui.screens.recipes.create.RecipeCreateScreen
+import com.example.menuplanner.ui.screens.recipes.detail.RecipeDetailScreen
+import com.example.menuplanner.ui.screens.recipes.list.RecipeListScreen
+import com.example.menuplanner.ui.screens.recipes.update.RecipeUpdateScreen
 
 @Composable
 fun AppNavigation() {
@@ -103,7 +108,9 @@ fun AppBottomNavigation(navController: NavHostController) {
             NavigationBarItem(
                 icon = { Icon(item.icon, contentDescription = item.title) },
                 label = { Text(item.title) },
-                selected = currentRoute == item.route || currentRoute?.startsWith("recipe_detail") == true && item == BottomNavItem.Recipes,
+                selected = currentRoute == item.route ||
+                        currentRoute?.startsWith("recipe") == true && item == BottomNavItem.Recipes ||
+                        currentRoute?.startsWith("meal_plan") == true && item == BottomNavItem.MealPlans,
                 onClick = {
                     navController.navigate(item.route) {
                         popUpTo(navController.graph.startDestinationId) { saveState = true }

@@ -1,4 +1,4 @@
-package com.example.menuplanner.ui.screens.mealPlans
+package com.example.menuplanner.ui.screens.mealPlans.list
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -8,25 +8,24 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.LocalDining
 import androidx.compose.material.icons.filled.Schedule
-import androidx.compose.material3.AssistChip
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.example.menuplanner.data.DummyData
-import com.example.menuplanner.data.model.MealPlan
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import com.example.menuplanner.domain.model.MealPlan
 
 @Composable
-fun MealPlanListScreen(onMealClick: (String) -> Unit) {
-    val mealPlans = DummyData.mealPlans
+fun MealPlanListScreen(
+    viewModel: MealPlanListViewModel = hiltViewModel(),
+    onMealClick: (String) -> Unit
+) {
+    val mealPlans by viewModel.mealPlans.collectAsState()
 
     LazyColumn(
         modifier = Modifier
@@ -37,13 +36,13 @@ fun MealPlanListScreen(onMealClick: (String) -> Unit) {
             Spacer(modifier = Modifier.height(16.dp))
             Text("Your Weekly Planner", style = MaterialTheme.typography.headlineMedium)
             Text(
-                text = "7 days, one plan each day",
+                text = "7 days, one plan each day!",
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
             Spacer(modifier = Modifier.height(16.dp))
         }
-        items(mealPlans) { mealPlan ->
+        items(mealPlans, key = { it.id }) { mealPlan ->
             MealPlanCard(mealPlan, onMealClick)
             Spacer(modifier = Modifier.height(10.dp))
         }
@@ -53,6 +52,12 @@ fun MealPlanListScreen(onMealClick: (String) -> Unit) {
 @Composable
 fun MealPlanCard(mealPlan: MealPlan, onClick: (String) -> Unit) {
     val cardColor = if (mealPlan.isCooked) Color(0xFFE8F5E9) else Color(0xFFFFF4E5)
+
+    val menuSummary = listOfNotNull(
+        mealPlan.breakfast?.title,
+        mealPlan.lunch?.title,
+        mealPlan.dinner?.title
+    ).joinToString(" • ").ifEmpty { "No meals selected yet" }
 
     Card(
         modifier = Modifier
@@ -98,8 +103,10 @@ fun MealPlanCard(mealPlan: MealPlan, onClick: (String) -> Unit) {
                     Icon(Icons.Default.LocalDining, contentDescription = null)
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(
-                        text = "${mealPlan.breakfast.title} • ${mealPlan.lunch.title} • ${mealPlan.dinner.title}",
-                        style = MaterialTheme.typography.bodyMedium
+                        text = menuSummary,
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = if (menuSummary == "No meals selected yet")
+                            MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurface
                     )
                 }
             }

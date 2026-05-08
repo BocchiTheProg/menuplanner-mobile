@@ -1,4 +1,4 @@
-package com.example.menuplanner.data.model
+package com.example.menuplanner.domain.model
 
 import java.util.Date
 import java.util.UUID
@@ -11,5 +11,7 @@ data class Recipe (
     val calories: Int,
     val prepTimeMinutes: Int,
     val isVegetarian: Boolean,
-    val dateAdded: Date
+    val dateAdded: Date,
+    val lastUpdated: Long = System.currentTimeMillis(),
+    val syncStatus: SyncStatus = SyncStatus.PENDING
 )

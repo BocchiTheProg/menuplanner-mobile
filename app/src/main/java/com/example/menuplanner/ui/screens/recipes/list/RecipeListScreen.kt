@@ -1,4 +1,4 @@
-package com.example.menuplanner.ui.screens.recipes
+package com.example.menuplanner.ui.screens.recipes.list
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -19,18 +19,21 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
-import com.example.menuplanner.data.DummyData
-import com.example.menuplanner.data.model.Recipe
+import com.example.menuplanner.domain.model.Recipe
 import androidx.compose.foundation.background
+import androidx.compose.runtime.collectAsState
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RecipeListScreen(
     navController: NavController,
+    viewModel: RecipeListViewModel = hiltViewModel(),
     onRecipeClick: (String) -> Unit,
     onCreateClick: () -> Unit
 ) {
-    val recipes = DummyData.recipes // Fetching data
+    // Observe recipes from ViewModel
+    val recipes by viewModel.recipes.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
     var recipeToDelete by remember { mutableStateOf<Recipe?>(null) }
 
@@ -88,7 +91,7 @@ fun RecipeListScreen(
             confirmButton = {
                 TextButton(
                     onClick = {
-                        recipes.remove(recipe)
+                        viewModel.deleteRecipe(recipe)
                         recipeToDelete = null
                     }
                 ) {
