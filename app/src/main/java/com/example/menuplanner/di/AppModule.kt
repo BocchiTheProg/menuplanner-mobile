@@ -22,10 +22,11 @@ object AppModule {
     @Singleton
     fun provideMenuDatabase(@ApplicationContext context: Context): MenuDatabase {
         return Room.databaseBuilder(
-            context,
-            MenuDatabase::class.java,
-            "menu_planner_db"
-        ).fallbackToDestructiveMigration().build()
+                context,
+                MenuDatabase::class.java,
+                "menu_planner_db"
+            ).addCallback(MenuDatabase.getDatabaseCallback())
+            .fallbackToDestructiveMigration(false).build()
     }
 
     @Provides
