@@ -12,7 +12,7 @@ import java.util.UUID
 @Dao
 interface MenuDao {
     // Recipes
-    @Query("SELECT * FROM recipes")
+    @Query("SELECT * FROM recipes ORDER BY lastUpdated DESC")
     fun getAllRecipes(): Flow<List<RecipeEntity>>
 
     @Query("SELECT * FROM recipes WHERE id = :id")
@@ -25,8 +25,21 @@ interface MenuDao {
     suspend fun deleteRecipe(recipe: RecipeEntity)
 
     // Meal Plans
+
     @Transaction
-    @Query("SELECT * FROM meal_plans")
+    @Query("""
+        SELECT * FROM meal_plans 
+        ORDER BY CASE dayOfWeek 
+            WHEN 'Monday' THEN 1 
+            WHEN 'Tuesday' THEN 2 
+            WHEN 'Wednesday' THEN 3 
+            WHEN 'Thursday' THEN 4 
+            WHEN 'Friday' THEN 5 
+            WHEN 'Saturday' THEN 6 
+            WHEN 'Sunday' THEN 7 
+            ELSE 8 
+        END ASC
+    """)
     fun getAllMealPlans(): Flow<List<MealPlanWithRecipes>>
 
     @Transaction
