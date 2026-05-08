@@ -36,7 +36,7 @@ fun MealPlanListScreen(
             Spacer(modifier = Modifier.height(16.dp))
             Text("Your Weekly Planner", style = MaterialTheme.typography.headlineMedium)
             Text(
-                text = "${mealPlans.size} plans available",
+                text = "7 days, one plan each day!",
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
@@ -103,8 +103,10 @@ fun MealPlanCard(mealPlan: MealPlan, onClick: (String) -> Unit) {
                     Icon(Icons.Default.LocalDining, contentDescription = null)
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(
-                        text = "${mealPlan.breakfast.title} • ${mealPlan.lunch.title} • ${mealPlan.dinner.title}",
-                        style = MaterialTheme.typography.bodyMedium
+                        text = menuSummary,
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = if (menuSummary == "No meals selected yet")
+                            MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurface
                     )
                 }
             }

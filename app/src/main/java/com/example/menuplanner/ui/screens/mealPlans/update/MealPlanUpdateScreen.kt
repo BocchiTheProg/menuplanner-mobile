@@ -34,28 +34,30 @@ fun MealPlanUpdateScreen(
     var lunch by remember { mutableStateOf<Recipe?>(null) }
     var dinner by remember { mutableStateOf<Recipe?>(null) }
 
-    // Sync UI state when data loads
-    LaunchedEffect(mealPlan) {
-        mealPlan?.let {
-            breakfast = it.breakfast
-            lunch = it.lunch
-            dinner = it.dinner
+    LaunchedEffect(mealPlan, allRecipes) {
+        val plan = mealPlan
+        if (plan != null) {
+            if (breakfast == null) {
+                breakfast = plan.breakfast ?: allRecipes.firstOrNull()
+            }
+            // Lunch
+            if (lunch == null) {
+                lunch = plan.lunch ?: allRecipes.firstOrNull()
+            }
+            // Dinner
+            if (dinner == null) {
+                dinner = plan.dinner ?: allRecipes.firstOrNull()
+            }
         }
     }
 
     val currentPlan = mealPlan
-    val currentBreakfast = breakfast
-    val currentLunch = lunch
-    val currentDinner = dinner
-
-    if (currentPlan == null || currentBreakfast == null || currentLunch == null || currentDinner == null) {
+    if (currentPlan == null) {
         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
             CircularProgressIndicator()
         }
         return
     }
-
-    val totalCalories = currentBreakfast.calories + currentLunch.calories + currentDinner.calories
 
     Scaffold(
         topBar = {
@@ -75,18 +77,44 @@ fun MealPlanUpdateScreen(
                 .padding(16.dp)
                 .fillMaxSize()
         ) {
-            RecipeDropdown(label = "Breakfast", selectedRecipe = currentBreakfast, options = allRecipes) { breakfast = it }
+            Text(
+                text = "Configure your menu",
+                style = MaterialTheme.typography.titleMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+
             Spacer(modifier = Modifier.height(16.dp))
 
-            RecipeDropdown(label = "Lunch", selectedRecipe = currentLunch, options = allRecipes) { lunch = it }
+            RecipeDropdown(
+                label = "Breakfast",
+                selectedRecipe = breakfast,
+                options = allRecipes
+            ) { breakfast = it }
+
             Spacer(modifier = Modifier.height(16.dp))
 
-            RecipeDropdown(label = "Dinner", selectedRecipe = currentDinner, options = allRecipes) { dinner = it }
+            RecipeDropdown(
+                label = "Lunch",
+                selectedRecipe = lunch,
+                options = allRecipes
+            ) { lunch = it }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            RecipeDropdown(
+                label = "Dinner",
+                selectedRecipe = dinner,
+                options = allRecipes
+            ) { dinner = it }
 
             Spacer(modifier = Modifier.height(24.dp))
-
             HorizontalDivider()
             Spacer(modifier = Modifier.height(16.dp))
+
+            // Calories display (Safe check for nulls)
+            val totalCalories = (breakfast?.calories ?: 0) +
+                    (lunch?.calories ?: 0) +
+                    (dinner?.calories ?: 0)
 
             Text(
                 text = "Total Calories: $totalCalories Cal",
@@ -97,9 +125,12 @@ fun MealPlanUpdateScreen(
 
             Spacer(modifier = Modifier.weight(1f))
 
+            // Enabled only if the user has actually selected a recipe for all 3 slots
             Button(
+                enabled = breakfast != null && lunch != null && dinner != null,
                 onClick = {
-                    viewModel.updateMealPlan(currentBreakfast, currentLunch, currentDinner)
+                    // Using !! is safe here because of the 'enabled' check above
+                    viewModel.updateMealPlan(breakfast!!, lunch!!, dinner!!)
                     navController.previousBackStackEntry?.savedStateHandle?.set("plan_updated", true)
                     navController.popBackStack()
                 },
@@ -117,7 +148,7 @@ fun MealPlanUpdateScreen(
 @Composable
 fun RecipeDropdown(
     label: String,
-    selectedRecipe: Recipe,
+    selectedRecipe: Recipe?,
     options: List<Recipe>,
     onSelectionChange: (Recipe) -> Unit
 ) {
@@ -128,49 +159,58 @@ fun RecipeDropdown(
         onExpandedChange = { expanded = !expanded }
     ) {
         OutlinedTextField(
-            value = "${selectedRecipe.title} (${selectedRecipe.calories} Cal)",
+            // Handles "Not set" logic visually
+            value = selectedRecipe?.let { "${it.title} (${it.calories} Cal)" } ?: "Select a recipe",
             onValueChange = {},
             readOnly = true,
             label = { Text(label) },
             trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
+            colors = if (selectedRecipe == null) {
+                OutlinedTextFieldDefaults.colors(
+                    unfocusedBorderColor = MaterialTheme.colorScheme.error
+                )
+            } else {
+                OutlinedTextFieldDefaults.colors()
+            },
             modifier = Modifier
-                .menuAnchor(type=MenuAnchorType.PrimaryNotEditable, enabled=true)
+                .menuAnchor(type = MenuAnchorType.PrimaryNotEditable, enabled = true)
                 .fillMaxWidth()
         )
         ExposedDropdownMenu(
             expanded = expanded,
             onDismissRequest = { expanded = false }
         ) {
-            options.forEach { recipe ->
+            if (options.isEmpty()) {
                 DropdownMenuItem(
-                    text = {
-                        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
-                            Text(
-                                text = recipe.title,
-                                modifier = Modifier.weight(1f),
-                                maxLines = 1
-                            )
-                            Text(
-                                text = "${recipe.calories} Cal",
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                            if (recipe.isVegetarian) {
-                                Spacer(modifier = Modifier.width(8.dp))
-                                Icon(
-                                    imageVector = Icons.Default.Eco,
-                                    contentDescription = "Vegetarian",
-                                    tint = Color(0xFF4CAF50),
-                                    modifier = Modifier.size(18.dp)
-                                )
-                            }
-                        }
-                    },
-                    onClick = {
-                        onSelectionChange(recipe)
-                        expanded = false
-                    }
+                    text = { Text("No recipes found. Please create one!") },
+                    onClick = { expanded = false }
                 )
+            } else {
+                options.forEach { recipe ->
+                    DropdownMenuItem(
+                        text = {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Text(recipe.title, modifier = Modifier.weight(1f))
+                                Text(
+                                    "${recipe.calories} Cal",
+                                    style = MaterialTheme.typography.bodySmall
+                                )
+                                if (recipe.isVegetarian) {
+                                    Icon(
+                                        Icons.Default.Eco,
+                                        contentDescription = null,
+                                        tint = Color(0xFF4CAF50),
+                                        modifier = Modifier.padding(start = 8.dp).size(16.dp)
+                                    )
+                                }
+                            }
+                        },
+                        onClick = {
+                            onSelectionChange(recipe)
+                            expanded = false
+                        }
+                    )
+                }
             }
         }
     }

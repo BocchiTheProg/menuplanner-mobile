@@ -11,6 +11,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
@@ -71,9 +72,9 @@ fun MealPlanDetailScreen(
                 Text(text = "Meal plan for ${currentPlan.dayOfWeek}", style = MaterialTheme.typography.headlineLarge)
                 Spacer(modifier = Modifier.height(8.dp))
 
-                val recipes = listOf(currentPlan.breakfast, currentPlan.lunch, currentPlan.dinner)
+                val recipes = listOfNotNull(currentPlan.breakfast, currentPlan.lunch, currentPlan.dinner)
                 val totalCalories = recipes.sumOf { it.calories }
-                val allVegetarian = recipes.all { it.isVegetarian }
+                val allVegetarian = if (recipes.isEmpty()) false else recipes.all { it.isVegetarian }
 
                 Spacer(modifier = Modifier.height(14.dp))
                 Text("Included recipes", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
@@ -115,17 +116,21 @@ fun MealPlanDetailScreen(
 @Composable
 private fun RecipeLinkRow(
     label: String,
-    recipe: Recipe,
+    recipe: Recipe?,
     onRecipeClick: (String) -> Unit
 ) {
     Row(verticalAlignment = Alignment.CenterVertically) {
-        Text("$label: ", style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Medium)
-        Text(
-            text = recipe.title,
-            style = MaterialTheme.typography.bodyLarge.copy(textDecoration = TextDecoration.Underline),
-            color = MaterialTheme.colorScheme.primary,
-            modifier = Modifier.clickable { onRecipeClick(recipe.id.toString()) }
-        )
+        Text("$label: ", fontWeight = FontWeight.Medium)
+        if (recipe != null) {
+            Text(
+                text = recipe.title,
+                style = MaterialTheme.typography.bodyLarge.copy(textDecoration = TextDecoration.Underline),
+                color = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.clickable { onRecipeClick(recipe.id.toString()) }
+            )
+        } else {
+            Text("Not set", style = MaterialTheme.typography.bodyLarge, color = Color.Gray)
+        }
     }
     Spacer(modifier = Modifier.height(6.dp))
 }
