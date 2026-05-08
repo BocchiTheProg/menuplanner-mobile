@@ -1,4 +1,4 @@
-package com.example.menuplanner.ui.screens.mealPlans
+package com.example.menuplanner.ui.screens.mealPlans.update
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
@@ -11,38 +11,56 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation.NavController
-import com.example.menuplanner.data.DummyData
-import com.example.menuplanner.data.model.Recipe
+import com.example.menuplanner.domain.model.Recipe
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MealPlanUpdateScreen(
     mealPlanId: String?,
-    navController: NavController
+    navController: NavController,
+    viewModel: MealPlanUpdateViewModel = hiltViewModel()
 ) {
-    val mealPlanIndex = DummyData.mealPlans.indexOfFirst { it.id.toString() == mealPlanId }
-    val mealPlan = DummyData.mealPlans.getOrNull(mealPlanIndex)
+    LaunchedEffect(mealPlanId) {
+        viewModel.loadMealPlan(mealPlanId)
+    }
 
-    if (mealPlan == null) {
+    val mealPlan by viewModel.mealPlan.collectAsState()
+    val allRecipes by viewModel.availableRecipes.collectAsState()
+
+    // Local UI state for selections
+    var breakfast by remember { mutableStateOf<Recipe?>(null) }
+    var lunch by remember { mutableStateOf<Recipe?>(null) }
+    var dinner by remember { mutableStateOf<Recipe?>(null) }
+
+    // Sync UI state when data loads
+    LaunchedEffect(mealPlan) {
+        mealPlan?.let {
+            breakfast = it.breakfast
+            lunch = it.lunch
+            dinner = it.dinner
+        }
+    }
+
+    val currentPlan = mealPlan
+    val currentBreakfast = breakfast
+    val currentLunch = lunch
+    val currentDinner = dinner
+
+    if (currentPlan == null || currentBreakfast == null || currentLunch == null || currentDinner == null) {
         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-            Text("Meal plan not found.")
+            CircularProgressIndicator()
         }
         return
     }
 
-    // State populated with current recipes
-    var breakfast by remember { mutableStateOf(mealPlan.breakfast) }
-    var lunch by remember { mutableStateOf(mealPlan.lunch) }
-    var dinner by remember { mutableStateOf(mealPlan.dinner) }
-
-    val allRecipes = DummyData.recipes
-    val totalCalories = breakfast.calories + lunch.calories + dinner.calories
+    val totalCalories = currentBreakfast.calories + currentLunch.calories + currentDinner.calories
 
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Update ${mealPlan.dayOfWeek}") },
+                title = { Text("Update ${currentPlan.dayOfWeek}") },
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
@@ -57,13 +75,13 @@ fun MealPlanUpdateScreen(
                 .padding(16.dp)
                 .fillMaxSize()
         ) {
-            RecipeDropdown(label = "Breakfast", selectedRecipe = breakfast, options = allRecipes) { breakfast = it }
+            RecipeDropdown(label = "Breakfast", selectedRecipe = currentBreakfast, options = allRecipes) { breakfast = it }
             Spacer(modifier = Modifier.height(16.dp))
 
-            RecipeDropdown(label = "Lunch", selectedRecipe = lunch, options = allRecipes) { lunch = it }
+            RecipeDropdown(label = "Lunch", selectedRecipe = currentLunch, options = allRecipes) { lunch = it }
             Spacer(modifier = Modifier.height(16.dp))
 
-            RecipeDropdown(label = "Dinner", selectedRecipe = dinner, options = allRecipes) { dinner = it }
+            RecipeDropdown(label = "Dinner", selectedRecipe = currentDinner, options = allRecipes) { dinner = it }
 
             Spacer(modifier = Modifier.height(24.dp))
 
@@ -81,14 +99,7 @@ fun MealPlanUpdateScreen(
 
             Button(
                 onClick = {
-                    // Update data source
-                    DummyData.mealPlans[mealPlanIndex] = mealPlan.copy(
-                        breakfast = breakfast,
-                        lunch = lunch,
-                        dinner = dinner
-                    )
-
-                    // Pass success state back and pop
+                    viewModel.updateMealPlan(currentBreakfast, currentLunch, currentDinner)
                     navController.previousBackStackEntry?.savedStateHandle?.set("plan_updated", true)
                     navController.popBackStack()
                 },
@@ -126,7 +137,6 @@ fun RecipeDropdown(
                 .menuAnchor(type=MenuAnchorType.PrimaryNotEditable, enabled=true)
                 .fillMaxWidth()
         )
-
         ExposedDropdownMenu(
             expanded = expanded,
             onDismissRequest = { expanded = false }
@@ -150,7 +160,7 @@ fun RecipeDropdown(
                                 Icon(
                                     imageVector = Icons.Default.Eco,
                                     contentDescription = "Vegetarian",
-                                    tint = Color(0xFF4CAF50), // Standard green for eco/vegetarian
+                                    tint = Color(0xFF4CAF50),
                                     modifier = Modifier.size(18.dp)
                                 )
                             }
