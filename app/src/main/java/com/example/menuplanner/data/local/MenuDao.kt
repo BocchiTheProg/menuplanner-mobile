@@ -18,7 +18,7 @@ interface MenuDao {
     @Query("SELECT * FROM recipes WHERE id = :id")
     suspend fun getRecipeById(id: UUID): RecipeEntity?
 
-    @Insert(onConflict = OnConflictStrategy.Companion.REPLACE)
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertRecipe(recipe: RecipeEntity)
 
     @Delete
@@ -33,6 +33,6 @@ interface MenuDao {
     @Query("SELECT * FROM meal_plans WHERE id = :id")
     suspend fun getMealPlanById(id: UUID): MealPlanWithRecipes?
 
-    @Insert(onConflict = OnConflictStrategy.Companion.REPLACE)
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertMealPlan(mealPlan: MealPlanEntity)
 }
