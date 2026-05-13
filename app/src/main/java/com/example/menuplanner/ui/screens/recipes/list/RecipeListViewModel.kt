@@ -5,9 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.example.menuplanner.data.MenuRepository
 import com.example.menuplanner.domain.model.Recipe
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -16,13 +14,31 @@ class RecipeListViewModel @Inject constructor(
     private val repository: MenuRepository
 ) : ViewModel() {
 
-    // Convert the Repository Flow into a StateFlow for the UI
-    val recipes: StateFlow<List<Recipe>> = repository.allRecipes
-        .stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5000),
-            initialValue = emptyList()
-        )
+    private val _searchQuery = MutableStateFlow("")
+    val searchQuery: StateFlow<String> = _searchQuery.asStateFlow()
+
+    // Combine the database flow with the search query flow
+    val recipes: StateFlow<List<Recipe>> = combine(
+        repository.allRecipes,
+        _searchQuery
+    ) { allRecipes, query ->
+        if (query.isBlank()) {
+            allRecipes
+        } else {
+            allRecipes.filter { recipe ->
+                recipe.title.contains(query, ignoreCase = true) ||
+                        recipe.description.contains(query, ignoreCase = true)
+            }
+        }
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5000),
+        initialValue = emptyList()
+    )
+
+    fun onSearchQueryChange(newQuery: String) {
+        _searchQuery.value = newQuery
+    }
 
     fun deleteRecipe(recipe: Recipe) {
         viewModelScope.launch {

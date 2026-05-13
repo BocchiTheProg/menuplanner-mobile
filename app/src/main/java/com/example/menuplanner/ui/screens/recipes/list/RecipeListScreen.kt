@@ -1,5 +1,6 @@
 package com.example.menuplanner.ui.screens.recipes.list
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -7,22 +8,17 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.SearchOff
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
-import androidx.compose.ui.Modifier
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.example.menuplanner.domain.model.Recipe
-import androidx.compose.foundation.background
-import androidx.compose.runtime.collectAsState
-import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -34,6 +30,7 @@ fun RecipeListScreen(
 ) {
     // Observe recipes from ViewModel
     val recipes by viewModel.recipes.collectAsState()
+    val searchQuery by viewModel.searchQuery.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
     var recipeToDelete by remember { mutableStateOf<Recipe?>(null) }
 
@@ -57,28 +54,49 @@ fun RecipeListScreen(
             }
         }
     ) { paddingValues ->
-        LazyColumn(
+        Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
                 .padding(horizontal = 16.dp)
         ) {
-            item {
-                Spacer(modifier = Modifier.height(16.dp))
-                Text("All Recipes", style = MaterialTheme.typography.headlineMedium)
-                Spacer(modifier = Modifier.height(16.dp))
-            }
-            items(items = recipes, key = { it.id }) { recipe ->
-                SwipeToDeleteRecipeCard(
-                    recipe = recipe,
-                    onClick = onRecipeClick,
-                    onDeleteRequested = { recipeToDelete = it }
-                )
-                Spacer(modifier = Modifier.height(8.dp))
-            }
-            item {
-                // Bottom padding to ensure the FAB doesn't cover the last item
-                Spacer(modifier = Modifier.height(80.dp))
+            Spacer(modifier = Modifier.height(16.dp))
+            Text("All Recipes", style = MaterialTheme.typography.headlineMedium)
+
+            // Search Bar
+            OutlinedTextField(
+                value = searchQuery,
+                onValueChange = { viewModel.onSearchQueryChange(it) },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 12.dp),
+                placeholder = { Text("Search recipes...") },
+                leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
+                trailingIcon = {
+                    if (searchQuery.isNotEmpty()) {
+                        IconButton(onClick = { viewModel.onSearchQueryChange("") }) {
+                            Icon(Icons.Default.Delete, contentDescription = "Clear")
+                        }
+                    }
+                },
+                singleLine = true,
+                shape = MaterialTheme.shapes.medium
+            )
+
+            if (recipes.isEmpty()) {
+                EmptySearchState()
+            } else {
+                LazyColumn(modifier = Modifier.fillMaxSize()) {
+                    items(items = recipes, key = { it.id }) { recipe ->
+                        SwipeToDeleteRecipeCard(
+                            recipe = recipe,
+                            onClick = onRecipeClick,
+                            onDeleteRequested = { recipeToDelete = it }
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
+                    }
+                    item { Spacer(modifier = Modifier.height(80.dp)) }
+                }
             }
         }
     }
@@ -93,16 +111,37 @@ fun RecipeListScreen(
                     onClick = {
                         viewModel.deleteRecipe(recipe)
                         recipeToDelete = null
-                    }
-                ) {
-                    Text("Yes")
-                }
+                }) { Text("Yes") }
             },
             dismissButton = {
                 TextButton(onClick = { recipeToDelete = null }) {
                     Text("No")
                 }
             }
+        )
+    }
+}
+
+@Composable
+fun EmptySearchState() {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(bottom = 100.dp), // Adjust for FAB
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Icon(
+            imageVector = Icons.Default.SearchOff,
+            contentDescription = null,
+            modifier = Modifier.size(80.dp),
+            tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f)
+        )
+        Spacer(modifier = Modifier.height(16.dp))
+        Text(
+            text = "No matching recipes",
+            style = MaterialTheme.typography.titleMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
         )
     }
 }
@@ -169,8 +208,12 @@ fun RecipeCard(recipe: Recipe, onClick: (String) -> Unit) {
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Text(text = recipe.title, style = MaterialTheme.typography.titleLarge)
-            Text(text = "Prep time: ${recipe.prepTimeMinutes} mins")
-            Text(text = if (recipe.isVegetarian) "Vegetarian" else "Contains Meat")
+            Text(text = "Prep time: ${recipe.prepTimeMinutes} mins", style = MaterialTheme.typography.bodyMedium)
+            Text(
+                text = if (recipe.isVegetarian) "Vegetarian" else "Contains Meat",
+                style = MaterialTheme.typography.bodySmall,
+                color = if (recipe.isVegetarian) Color(0xFF2E7D32) else Color(0xFFC62828)
+            )
         }
     }
 }
