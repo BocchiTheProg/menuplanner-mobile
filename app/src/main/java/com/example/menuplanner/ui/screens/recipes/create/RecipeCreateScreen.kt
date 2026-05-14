@@ -1,7 +1,9 @@
 package com.example.menuplanner.ui.screens.recipes.create
 
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.*
@@ -21,12 +23,17 @@ fun RecipeCreateScreen(
 ) {
     // State variables for form inputs
     var title by remember { mutableStateOf("") }
-    var calories by remember {mutableStateOf("") }
+    var calories by remember { mutableStateOf("") }
     var prepTime by remember { mutableStateOf("") }
     var isVegetarian by remember { mutableStateOf(false) }
-
-    // Validation state
     var isError by remember { mutableStateOf(false) }
+
+    // Validation helper
+    val caloriesValue = calories.toIntOrNull()
+    val prepTimeValue = prepTime.toIntOrNull()
+    val isTitleValid = title.isNotBlank() && title.length <= 100
+    val isCaloriesValid = caloriesValue != null && caloriesValue >= 0
+    val isPrepTimeValid = prepTimeValue != null && prepTimeValue >= 0
 
     Scaffold(
         topBar = {
@@ -44,14 +51,17 @@ fun RecipeCreateScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
+                .verticalScroll(rememberScrollState())
                 .padding(16.dp)
         ) {
             OutlinedTextField(
                 value = title,
-                onValueChange = { title = it },
+                onValueChange = { if (it.length <= 100) title = it },
                 label = { Text("Recipe Title") },
-                isError = isError && title.isBlank(),
-                modifier = Modifier.fillMaxWidth()
+                supportingText = { Text("${title.length}/100") },
+                isError = isError && !isTitleValid,
+                modifier = Modifier.fillMaxWidth(),
+                maxLines = 3
             )
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -61,7 +71,7 @@ fun RecipeCreateScreen(
                 onValueChange = { calories = it },
                 label = { Text("Nutritional value (calories)") },
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                isError = isError && calories.toIntOrNull() == null,
+                isError = isError && !isCaloriesValid,
                 modifier = Modifier.fillMaxWidth()
             )
 
@@ -72,7 +82,7 @@ fun RecipeCreateScreen(
                 onValueChange = { prepTime = it },
                 label = { Text("Preparation Time (minutes)") },
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                isError = isError && prepTime.toIntOrNull() == null,
+                isError = isError && !isPrepTimeValid,
                 modifier = Modifier.fillMaxWidth()
             )
 
@@ -91,28 +101,19 @@ fun RecipeCreateScreen(
 
             if (isError) {
                 Text(
-                    text = "Please fill in all fields correctly.",
+                    text = "Please fill in all fields correctly (no negative numbers).",
                     color = MaterialTheme.colorScheme.error,
                     modifier = Modifier.padding(top = 8.dp)
                 )
             }
 
-            Spacer(modifier = Modifier.weight(1f))
+            Spacer(modifier = Modifier.height(32.dp))
 
             Button(
                 onClick = {
-                    val caloriesInt = calories.toIntOrNull()
-                    val timeInt = prepTime.toIntOrNull()
-                    if (title.isNotBlank() && timeInt != null && caloriesInt != null) {
-                        // Create object and add to data source
-                        viewModel.saveRecipe(title, caloriesInt, timeInt, isVegetarian)
-
-                        // Pass success flag back to previous screen
-                        navController.previousBackStackEntry
-                            ?.savedStateHandle
-                            ?.set("recipe_created", true)
-
-                        // Navigate back
+                    if (isTitleValid && isCaloriesValid && isPrepTimeValid) {
+                        viewModel.saveRecipe(title, caloriesValue, prepTimeValue, isVegetarian)
+                        navController.previousBackStackEntry?.savedStateHandle?.set("recipe_created", true)
                         navController.popBackStack()
                     } else {
                         isError = true
@@ -122,6 +123,9 @@ fun RecipeCreateScreen(
             ) {
                 Text("Create Recipe")
             }
+
+            // Extra spacer for bottom padding when scrolled
+            Spacer(modifier = Modifier.height(16.dp))
         }
     }
 }
