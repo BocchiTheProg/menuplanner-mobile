@@ -1,6 +1,8 @@
 package com.example.menuplanner.ui.screens.mealPlans.update
 
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Eco
@@ -51,8 +53,7 @@ fun MealPlanUpdateScreen(
         }
     }
 
-    val currentPlan = mealPlan
-    if (currentPlan == null) {
+    if (mealPlan == null) {
         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
             CircularProgressIndicator()
         }
@@ -61,19 +62,22 @@ fun MealPlanUpdateScreen(
 
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = { Text("Update ${currentPlan.dayOfWeek}") },
-                navigationIcon = {
-                    IconButton(onClick = { navController.popBackStack() }) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+            mealPlan?.let {
+                TopAppBar(
+                    title = { Text("Update ${it.dayOfWeek}") },
+                    navigationIcon = {
+                        IconButton(onClick = { navController.popBackStack() }) {
+                            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                        }
                     }
-                }
-            )
+                )
+            }
         }
     ) { padding ->
         Column(
             modifier = Modifier
                 .padding(padding)
+                .verticalScroll(rememberScrollState())
                 .padding(16.dp)
                 .fillMaxSize()
         ) {

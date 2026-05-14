@@ -1,6 +1,8 @@
 package com.example.menuplanner.ui.screens.mealPlans.detail
 
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.clickable
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -35,7 +37,7 @@ fun MealPlanDetailScreen(
     val mealPlan by viewModel.mealPlan.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
 
-    val currentPlan = mealPlan
+//    val currentPlan = mealPlan
 
     val savedStateHandle = navController.currentBackStackEntry?.savedStateHandle
     val updateSuccess = savedStateHandle?.get<Boolean>("plan_updated") ?: false
@@ -58,7 +60,7 @@ fun MealPlanDetailScreen(
                     }
                 },
                 actions = {
-                    currentPlan?.let {
+                    mealPlan?.let {
                         IconButton(onClick = { navController.navigate("meal_plan_update/${it.id}") }) {
                             Icon(Icons.Default.Edit, contentDescription = "Edit Meal Plan")
                         }
@@ -67,8 +69,14 @@ fun MealPlanDetailScreen(
             )
         }
     ) { padding ->
-        Column(modifier = Modifier.padding(padding).padding(16.dp)) {
-            if (currentPlan != null) {
+        Column(
+            modifier = Modifier
+                .padding(padding)
+                .verticalScroll(rememberScrollState())
+                .padding(16.dp)
+                .fillMaxSize()
+        ) {
+            mealPlan?.let { currentPlan ->
                 Text(text = "Meal plan for ${currentPlan.dayOfWeek}", style = MaterialTheme.typography.headlineLarge)
                 Spacer(modifier = Modifier.height(8.dp))
 
@@ -104,11 +112,10 @@ fun MealPlanDetailScreen(
                 Button(onClick = { viewModel.toggleCookedStatus() }) {
                     Text(if (currentPlan.isCooked) "Mark as Not Cooked" else "Mark as Cooked")
                 }
-            } else {
+            } ?:
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                     CircularProgressIndicator()
                 }
-            }
         }
     }
 }
