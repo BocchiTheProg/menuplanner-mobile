@@ -12,7 +12,7 @@ import java.util.UUID
 @Dao
 interface MenuDao {
     // Recipes
-    @Query("SELECT * FROM recipes ORDER BY lastUpdated DESC")
+    @Query("SELECT * FROM recipes WHERE syncStatus != 'DELETED' ORDER BY lastUpdated DESC")
     fun getAllRecipes(): Flow<List<RecipeEntity>>
 
     @Query("SELECT * FROM recipes WHERE id = :id")
