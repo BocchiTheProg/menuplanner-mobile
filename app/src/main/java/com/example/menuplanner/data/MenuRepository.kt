@@ -67,10 +67,19 @@ class MenuRepository @Inject constructor(
 
     // Delete operation
     suspend fun deleteRecipe(recipe: Recipe) {
-        // Delete locally
-        dao.deleteRecipe(recipe.toEntity())
+        // Mark as DELETED locally
+        val pendingDelete = recipe.copy(syncStatus = SyncStatus.DELETED)
+        dao.insertRecipe(pendingDelete.toEntity())
 
-        // Attempt to delete on server
-        api.deleteRecipeOnServer(recipe.id)
+        // Attempt API call
+        try {
+            val result = api.deleteRecipeOnServer(recipe.id)
+            if (result.isSuccess) {
+                // Only truly delete from local DB if server confirms
+                dao.deleteRecipe(recipe.toEntity())
+            } else {
+                // Leave it marked as DELETED to retry later
+            }
+        } catch (e: Exception) { }
     }
 }
