@@ -1,7 +1,9 @@
 package com.example.menuplanner.ui.screens.recipes.update
 
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.*
@@ -35,7 +37,7 @@ fun RecipeUpdateScreen(
     var isVegetarian by remember { mutableStateOf(false) }
     var isError by remember { mutableStateOf(false) }
 
-    // 4. Populate UI state once the database recipe is loaded
+    // Populate UI state once the database recipe is loaded
     LaunchedEffect(recipe) {
         recipe?.let {
             title = it.title
@@ -45,14 +47,18 @@ fun RecipeUpdateScreen(
         }
     }
 
-    // Handle null state (e.g., during loading)
-    val currentRecipe = recipe
-    if (currentRecipe == null) {
+    if (recipe == null) {
         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
             CircularProgressIndicator()
         }
         return
     }
+
+    // Validation logic
+    val calInt = calories.toIntOrNull()
+    val timeInt = prepTime.toIntOrNull()
+    val isTitleValid = title.isNotBlank() && title.length <= 100
+    val isValid = isTitleValid && calInt != null && calInt >= 0 && timeInt != null && timeInt >= 0
 
     Scaffold(
         topBar = {
@@ -70,14 +76,17 @@ fun RecipeUpdateScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
+                .verticalScroll(rememberScrollState())
                 .padding(16.dp)
         ) {
             OutlinedTextField(
                 value = title,
-                onValueChange = { title = it },
+                onValueChange = { if (it.length <= 100) title = it },
                 label = { Text("Recipe Title") },
-                isError = isError && title.isBlank(),
-                modifier = Modifier.fillMaxWidth()
+                supportingText = { Text("${title.length}/100") },
+                isError = isError && !isTitleValid,
+                modifier = Modifier.fillMaxWidth(),
+                maxLines = 3
             )
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -87,7 +96,7 @@ fun RecipeUpdateScreen(
                 onValueChange = { calories = it },
                 label = { Text("Nutritional value (calories)") },
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                isError = isError && calories.toIntOrNull() == null,
+                isError = isError && (calInt == null || calInt < 0),
                 modifier = Modifier.fillMaxWidth()
             )
 
@@ -98,7 +107,7 @@ fun RecipeUpdateScreen(
                 onValueChange = { prepTime = it },
                 label = { Text("Preparation Time (minutes)") },
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                isError = isError && prepTime.toIntOrNull() == null,
+                isError = isError && (timeInt == null || timeInt < 0),
                 modifier = Modifier.fillMaxWidth()
             )
 
@@ -116,24 +125,15 @@ fun RecipeUpdateScreen(
             }
 
             if (isError) {
-                Text(
-                    text = "Please fill in all fields correctly.",
-                    color = MaterialTheme.colorScheme.error,
-                    modifier = Modifier.padding(top = 8.dp)
-                )
+                Text("Please check your inputs (no negative values).", color = MaterialTheme.colorScheme.error)
             }
 
-            Spacer(modifier = Modifier.weight(1f))
+            Spacer(modifier = Modifier.height(32.dp))
 
             Button(
                 onClick = {
-                    val caloriesInt = calories.toIntOrNull()
-                    val timeInt = prepTime.toIntOrNull()
-                    if (title.isNotBlank() && caloriesInt != null && timeInt != null) {
-                        // Call ViewModel to update
-                        viewModel.updateRecipe(title, caloriesInt, timeInt, isVegetarian)
-
-                        // Set result for previous screen (Detail screen)
+                    if (isValid) {
+                        viewModel.updateRecipe(title, calInt, timeInt, isVegetarian)
                         navController.previousBackStackEntry
                             ?.savedStateHandle
                             ?.set("recipe_updated", true)
@@ -147,6 +147,9 @@ fun RecipeUpdateScreen(
             ) {
                 Text("Save Changes")
             }
+
+            // Extra spacer for bottom padding when scrolled
+            Spacer(modifier = Modifier.height(16.dp))
         }
     }
 }
