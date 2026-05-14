@@ -2,6 +2,8 @@ package com.example.menuplanner.ui.screens.recipes.detail
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Edit
@@ -36,8 +38,6 @@ fun RecipeDetailScreen(
     LaunchedEffect(recipe) {
         recipe?.let { descriptionText = it.description }
     }
-
-    val currentRecipe = recipe
 
     val hasUnsavedChanges = recipe != null && descriptionText != recipe?.description
     var showUnsavedDialog by remember { mutableStateOf(false) }
@@ -100,8 +100,8 @@ fun RecipeDetailScreen(
                     }
                 },
                 actions = {
-                    if (currentRecipe != null) {
-                        IconButton(onClick = { navController.navigate("recipe_update/${currentRecipe.id}") }) {
+                    recipe?.let {
+                        IconButton(onClick = { navController.navigate("recipe_update/${it.id}") }) {
                             Icon(Icons.Default.Edit, contentDescription = "Edit Recipe")
                         }
                     }
@@ -109,10 +109,20 @@ fun RecipeDetailScreen(
             )
         }
     ) { padding ->
-        Column(modifier = Modifier.padding(padding).padding(16.dp).fillMaxSize()) {
-            if (currentRecipe != null) {
+        // verticalScroll so the long title can scroll away to make room for description
+        Column(
+            modifier = Modifier
+                .padding(padding)
+                .verticalScroll(rememberScrollState())
+                .padding(16.dp)
+                .fillMaxSize()
+        ) {
+            recipe?.let { currentRecipe ->
                 // General Info Block
-                Text(text = currentRecipe.title, style = MaterialTheme.typography.headlineLarge)
+                Text(
+                    text = currentRecipe.title,
+                    style = MaterialTheme.typography.headlineLarge,
+                )
                 Spacer(modifier = Modifier.height(8.dp))
 
                 Text(text = "Nutritional value: ${currentRecipe.calories} Cal", style = MaterialTheme.typography.bodyLarge)
@@ -149,13 +159,13 @@ fun RecipeDetailScreen(
                 OutlinedTextField(
                     value = descriptionText,
                     onValueChange = { descriptionText = it },
-                    modifier = Modifier.fillMaxWidth().weight(1f),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .heightIn(min = 300.dp),
                     placeholder = { Text("Write your recipe instructions or description here...") },
                     shape = MaterialTheme.shapes.medium
                 )
-            } else {
-                Text("Recipe not found.")
-            }
+            } ?: Text("Recipe not found.")
         }
     }
 }
