@@ -82,4 +82,23 @@ class MenuRepository @Inject constructor(
             }
         } catch (e: Exception) { }
     }
+
+    // Sync Pending Data
+
+    suspend fun syncPendingData() {
+        val unsyncedRecipes = dao.getUnsyncedRecipes().map { it.toDomainModel() }
+        val unsyncedMealPlans = dao.getUnsyncedMealPlans().map { it.toDomainModel() }
+
+        for (recipe in unsyncedRecipes) {
+            if (recipe.syncStatus == SyncStatus.DELETED) {
+                deleteRecipe(recipe) // Retry delete
+            } else {
+                saveRecipe(recipe)   // Retry save
+            }
+        }
+
+        for (mealPlan in unsyncedMealPlans) {
+            saveMealPlan(mealPlan) // Retry save
+        }
+    }
 }

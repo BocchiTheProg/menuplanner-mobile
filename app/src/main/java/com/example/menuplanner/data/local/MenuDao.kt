@@ -24,6 +24,9 @@ interface MenuDao {
     @Delete
     suspend fun deleteRecipe(recipe: RecipeEntity)
 
+    @Query("SELECT * FROM recipes WHERE syncStatus IN ('PENDING', 'ERROR', 'DELETED')")
+    suspend fun getUnsyncedRecipes(): List<RecipeEntity>
+
     // Meal Plans
 
     @Transaction
@@ -48,4 +51,8 @@ interface MenuDao {
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertMealPlan(mealPlan: MealPlanEntity)
+
+    @Transaction
+    @Query("SELECT * FROM meal_plans WHERE syncStatus IN ('PENDING', 'ERROR', 'DELETED')")
+    suspend fun getUnsyncedMealPlans(): List<MealPlanWithRecipes>
 }
