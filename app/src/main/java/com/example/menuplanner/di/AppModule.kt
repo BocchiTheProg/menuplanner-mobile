@@ -7,6 +7,8 @@ import com.example.menuplanner.data.network.MockMenuApiImpl
 import com.example.menuplanner.data.local.MenuDao
 import com.example.menuplanner.data.local.MenuDatabase
 import com.example.menuplanner.data.MenuRepository
+import com.example.menuplanner.data.websocket.MockWebSocketManagerImpl
+import com.example.menuplanner.data.websocket.SocketManager
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -44,5 +46,11 @@ object AppModule {
     @Singleton
     fun provideMenuRepository(dao: MenuDao, api: MenuApiService): MenuRepository {
         return MenuRepository(dao, api)
+    }
+
+    @Provides
+    @Singleton
+    fun provideSocketManager(impl: MockWebSocketManagerImpl): SocketManager {
+        return impl
     }
 }
