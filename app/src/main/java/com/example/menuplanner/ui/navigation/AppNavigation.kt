@@ -14,6 +14,8 @@ import com.example.menuplanner.ui.screens.recipes.create.RecipeCreateScreen
 import com.example.menuplanner.ui.screens.recipes.detail.RecipeDetailScreen
 import com.example.menuplanner.ui.screens.recipes.list.RecipeListScreen
 import com.example.menuplanner.ui.screens.recipes.update.RecipeUpdateScreen
+// IMPORT THE NEW SCREEN
+import com.example.menuplanner.ui.screens.livefeed.LiveFeedScreen
 
 @Composable
 fun AppNavigation() {
@@ -90,7 +92,12 @@ fun AppNavigation() {
                 RecipeCreateScreen(navController = navController)
             }
 
-            // Tab 3: Profile (Additional Screen)
+            // NEW TAB 3: Live Community Feed (WebSocket)
+            composable(BottomNavItem.LiveFeed.route) {
+                LiveFeedScreen()
+            }
+
+            // Tab 4: Profile (Additional Screen)
             composable(BottomNavItem.Profile.route) {
                 ProfileScreen()
             }
@@ -100,7 +107,14 @@ fun AppNavigation() {
 
 @Composable
 fun AppBottomNavigation(navController: NavHostController) {
-    val items = listOf(BottomNavItem.MealPlans, BottomNavItem.Recipes, BottomNavItem.Profile)
+    // ADD BottomNavItem.LiveFeed to the list here!
+    val items = listOf(
+        BottomNavItem.MealPlans,
+        BottomNavItem.Recipes,
+        BottomNavItem.LiveFeed,
+        BottomNavItem.Profile
+    )
+
     val currentRoute = navController.currentBackStackEntryAsState().value?.destination?.route
 
     NavigationBar {
