@@ -7,6 +7,8 @@ import com.example.menuplanner.data.network.MockMenuApiImpl
 import com.example.menuplanner.data.local.MenuDao
 import com.example.menuplanner.data.local.MenuDatabase
 import com.example.menuplanner.data.MenuRepository
+import com.example.menuplanner.data.security.AppBiometricManager
+import com.example.menuplanner.data.security.SecurityPreferences
 import com.example.menuplanner.data.websocket.MockWebSocketManagerImpl
 import com.example.menuplanner.data.websocket.SocketManager
 import dagger.Module
@@ -52,5 +54,20 @@ object AppModule {
     @Singleton
     fun provideSocketManager(impl: MockWebSocketManagerImpl): SocketManager {
         return impl
+    }
+
+    @Provides
+    @Singleton
+    fun provideSecurityPreferences(@ApplicationContext context: Context): SecurityPreferences {
+        return SecurityPreferences(context)
+    }
+
+    @Provides
+    @Singleton
+    fun provideAppBiometricManager(
+        @ApplicationContext context: Context,
+        prefs: SecurityPreferences
+    ): AppBiometricManager {
+        return AppBiometricManager(context, prefs)
     }
 }
