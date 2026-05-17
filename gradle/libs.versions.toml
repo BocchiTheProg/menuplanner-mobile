@@ -1,5 +1,6 @@
 [versions]
 agp = "9.1.0"
+biometric = "1.2.0-alpha05"
 coreKtx = "1.18.0"
 gson = "2.14.0"
 hiltAndroid = "2.59.2"
@@ -21,6 +22,7 @@ roomRuntime = "2.8.4"
 turbine = "1.2.1"
 
 [libraries]
+androidx-biometric = { module = "androidx.biometric:biometric", version.ref = "biometric" }
 androidx-compose-material-icons-extended = { module = "androidx.compose.material:material-icons-extended" }
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
 androidx-hilt-navigation-compose = { module = "androidx.hilt:hilt-navigation-compose", version.ref = "hiltNavigationCompose" }
