@@ -6,7 +6,6 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.*
-import com.example.menuplanner.ui.screens.*
 import com.example.menuplanner.ui.screens.mealPlans.detail.MealPlanDetailScreen
 import com.example.menuplanner.ui.screens.mealPlans.list.MealPlanListScreen
 import com.example.menuplanner.ui.screens.mealPlans.update.MealPlanUpdateScreen
@@ -15,6 +14,8 @@ import com.example.menuplanner.ui.screens.recipes.detail.RecipeDetailScreen
 import com.example.menuplanner.ui.screens.recipes.list.RecipeListScreen
 import com.example.menuplanner.ui.screens.recipes.update.RecipeUpdateScreen
 import com.example.menuplanner.ui.screens.livefeed.LiveFeedScreen
+import com.example.menuplanner.ui.screens.profile.ProfileScreen
+import com.example.menuplanner.ui.screens.security.SecurityScreen
 
 @Composable
 fun AppNavigation() {
@@ -96,9 +97,22 @@ fun AppNavigation() {
                 LiveFeedScreen()
             }
 
-            // Tab 4: Profile (Additional Screen)
+            // Tab 4: Profile Section (Biometric Gatekeeper Screen)
             composable(BottomNavItem.Profile.route) {
-                ProfileScreen()
+                ProfileScreen(
+                    onNavigateToSecurity = {
+                        navController.navigate("security_settings")
+                    }
+                )
+            }
+
+            // Nested Sub-Screen: Security Configurations (Accessed only via Profile Gateway)
+            composable("security_settings") {
+                SecurityScreen(
+                    onNavigateBack = {
+                        navController.popBackStack()
+                    }
+                )
             }
         }
     }
@@ -112,7 +126,6 @@ fun AppBottomNavigation(navController: NavHostController) {
         BottomNavItem.LiveFeed,
         BottomNavItem.Profile
     )
-
     val currentRoute = navController.currentBackStackEntryAsState().value?.destination?.route
 
     NavigationBar {
@@ -121,8 +134,9 @@ fun AppBottomNavigation(navController: NavHostController) {
                 icon = { Icon(item.icon, contentDescription = item.title) },
                 label = { Text(item.title) },
                 selected = currentRoute == item.route ||
-                        currentRoute?.startsWith("recipe") == true && item == BottomNavItem.Recipes ||
-                        currentRoute?.startsWith("meal_plan") == true && item == BottomNavItem.MealPlans,
+                        (currentRoute?.startsWith("recipe") == true && item == BottomNavItem.Recipes) ||
+                        (currentRoute?.startsWith("meal_plan") == true && item == BottomNavItem.MealPlans) ||
+                        ((currentRoute == "security_settings") && item == BottomNavItem.Profile),
                 onClick = {
                     navController.navigate(item.route) {
                         popUpTo(navController.graph.startDestinationId) { saveState = true }
